@@ -23,6 +23,11 @@ nav {
   align-items: center;      /* Center vertically (if the container has a fixed height) */
   height: 100%;             /* Optional: ensures the flex container takes full height of its parent */
 }
+
+.col-lg-8 {
+  background-color: rgba(255, 255, 255, 0);
+}
+
 .profile-img {
   box-shadow: 0px 8px 100px rgba(0, 0, 0, 0.847), 0px 4px 50px rgb(0, 0, 0);  /* Horizontal offset, Vertical offset, Blur radius, Shadow color */
   transition: box-shadow 0.45s ease; /* Optional: smooth shadow effect on hover */
