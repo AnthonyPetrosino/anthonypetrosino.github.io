@@ -1,8 +1,15 @@
 var resumeButton = document.getElementById("resume");
 var pdfViewer = document.getElementById("pdfViewer");
 
-resumeButton.addEventListener("click", function() {
-    pdfViewer.src = "Anthony_Petrosino_Resume.pdf"; 
+document.getElementById("resume").addEventListener("click", function () {
+    const resumePdf = document.getElementById("resumePdf");
+    if (resumePdf.style.display === "none") {
+        resumePdf.style.display = "block";
+        this.textContent = "Hide Resume"; // Update button text
+    } else {
+        resumePdf.style.display = "none";
+        this.textContent = "Show Resume";
+    }
 });
 
 $(document).ready(function() {

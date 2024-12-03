@@ -18,6 +18,15 @@ nav {
   background-color: white;
 }
 
+.profile-img {
+  box-shadow: 0px 8px 100px rgba(0, 0, 0, 0.847), 0px 4px 50px rgb(0, 0, 0);  /* Horizontal offset, Vertical offset, Blur radius, Shadow color */
+  transition: box-shadow 0.45s ease; /* Optional: smooth shadow effect on hover */
+}
+
+.profile-img:hover {
+  box-shadow: 0 18px 40px #71c28b; /* Increase shadow intensity on hover */
+}
+
 /* Style the main text content section */
 section {
   padding: 20px;

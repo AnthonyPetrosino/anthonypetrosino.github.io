@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap');
 
 .card-list {
-    background-image: linear-gradient(white, #71C28A, #ffffff);
+    background-image: linear-gradient(white, #71c28a, #ffffff);
     display: grid;
     gap: 110px;
     grid-auto-flow: column;
@@ -38,7 +38,7 @@
     margin-left: -100px;
 }
 
-.card-author {
+.card-description {
     position: relative;
     display: grid;
     font-size: 19px;
@@ -47,7 +47,7 @@
     margin: 3rem 0 0;
 }
 
-.author-avatar img {
+.card-avatar img {
     display: block;
     width: 50px;
     height: 50px;
@@ -99,38 +99,42 @@
 .tags {
     margin: 1rem 0 2rem;
     padding: .5rem 0 1rem;
-    line-height: 0.75;
-    margin-bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
 }
 
 .tags a {
     font-style: normal;
     font-weight: 700;
-    font-size: .5rem;
+    font-size: 0.75rem;
     color: #7a7a8c;
     text-transform: uppercase;
     font-size: .66rem;
-    border: 3px solid #ffffff;
-    border-radius: 2rem;
-    padding: .2rem .85rem .25rem;
-    position: relative;
+    border: 3px solid #71C28A;
+    border-radius: 1rem;
+    padding: 0.5rem 1rem;
+    background: #f9f9f9;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .tags a:hover {
     background: #1B7CB7;
+    color: white;
+    border-color: #1B7CB7;
     text-shadow: none;
-    -webkit-text-fill-color: transparent;
-    -webkit-background-clip: text;
-    -webkit-box-decoration-break: clone;
-    background-clip: text;
-    border-color: white;
+    -webkit-text-fill-color: white;
+    /* -webkit-background-clip: text;
+    -webkit-box-decoration-break: clone; */
+    background-clip: unset;
 }
 
 .card {
     display: flex;
     position: relative;
     flex-direction: column;
-    height: 400px; 
+    height: 450px; 
     width: 500px; 
     min-width: 500px; 
     padding: 1.5rem;
