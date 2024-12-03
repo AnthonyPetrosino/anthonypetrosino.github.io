@@ -1,0 +1,120 @@
+/* Reset default margin, padding, and background color */
+* {
+  margin: 0;
+  padding: 0;
+  background-color: white;
+}
+
+/* Set font and text color */
+body {
+  font-family: Arial, sans-serif;
+  color: rgb(255, 255, 255);
+}
+
+/* Style the navigation */
+nav {
+  width: 100%;
+  height: 20%;
+  background-color: white;
+}
+
+/* Style the main text content section */
+section {
+  padding: 20px;
+  margin-top: 60px;
+  color: black;
+}
+
+/* Style the unordered list */
+ul {
+  margin-left: 60px;
+}
+
+/* Style list items */
+ul li {
+  list-style: none;
+  display: inline-block;
+  line-height: 60px;
+  background-color: white;
+  padding: 0 30px;
+}
+
+/* Hover effect for links */
+ul li a:hover {
+  color: green; /* Change text color to green on hover */
+  transform: scale(1.1); /* Expand the size of the text on hover */
+}
+
+/* Add green underline effect */
+ul li a::after {
+  content: '';
+  position: absolute; /* Position the underline */
+  bottom: 0; /* Align to the bottom of the link */
+  left: 0; /* Start from the left */
+  width: 0;
+  height: 4px;
+  background-color: green;
+  transition: width 0.3s; /* Add transition for smooth animation */
+}
+
+
+ul li a:hover::after {
+  width: 100%; /* Expand the underline on hover */
+}
+
+/* Style the active link */
+ul li a.active::after {
+  width: 100%; /* Expand the underline */
+  background-color: green;
+}
+
+/* Set Logo Size */
+.img-logo {
+  width: 50px; /* Set the width of the logos */
+  height: auto; /* Maintain aspect ratio */
+  margin-right: 10px; /* Add some spacing between the logo and the text */
+}
+
+/* Style links */
+ul li a {
+  display: block;
+  text-decoration: none;
+  font-size: 18px;
+  color: black;
+  position: relative; /* Position relative for absolute positioning of the underline */
+}
+
+a {
+  color: black; /* Replace with any color you prefer */
+  text-decoration: none; /* Removes the underline */
+}
+
+/* Add border around the selected item */
+ul li a.active {
+  border: 1px solid green; /* Add a green border */
+}
+
+/* Media query for smaller screens */
+@media screen and (max-width: 600px) {
+  /* Adjust styles for smaller screens */
+  ul li a {
+    font-size: 10px;
+  }
+  
+  ul li {
+    line-height: 40px;
+    background-color: white;
+  }
+  
+  ul {
+    margin-left: 5px;
+  }
+  
+  nav {
+    height: 30px;
+    display: flex;
+    align-items: left;
+    padding: 0 10px;
+    box-sizing: border-box;
+  }
+}
