@@ -2,7 +2,7 @@
 * {
   margin: 0;
   padding: 0;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0);
 }
 
 /* Set font and text color */
@@ -17,6 +17,48 @@ nav {
   background-color: white;
 }
 
+.navbar-brand {
+  display: flex;
+  align-items: center; /* Vertically center the logo */
+  justify-content: center; /* Horizontally center if needed */
+  height: 100%; /* Ensure it takes the full height of the navbar */
+  position: relative; /* Required for positioning the box behind the AP logo */
+}
+
+.navbar-brand::before {
+  content: '';
+  position: absolute;
+  top: 50%; /* Start from the middle */
+  left: 53%; /* Start from the middle, slightly move it right to better fit the AP logo */
+  transform: translate(-50%, -50%) scale(0); /* Center and hide initially */
+  width: 50px; /* Size of the blue box */
+  height: 50px; /* Size of the blue box */
+  background-color: #1b7bb794; /* Blue box with some transparency */
+  border-radius: 50%; /* Make it circular */
+  z-index: 1; /* Place it behind the logo */
+  transition: transform 0.5s ease-in-out;
+}
+
+.navbar-brand:hover::before {
+  transform: translate(-50%, -50%) scale(1); /* Expand the blue box on hover */
+}
+
+.img-APlogo {
+  height: 70px; /* Adjust the logo height */
+  width: 70px; /* Make width equal to height for a perfect circle */
+  margin: 0 auto; /* Center within its container */
+  z-index: 2; /* Keep the logo on top of the box */
+  transform: scale(1.6);
+  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+  border-radius: 50%; /* Rounds the image */
+  overflow: hidden; /* Ensures the image fits within the rounded boundary */
+  position: relative; /* Ensure the hover effect applies correctly */
+}
+
+.img-APlogo:hover {
+  transform: scale(2); /* Scale the circular image */
+}
+
 .col-lg-4 {
   display: flex;
   justify-content: center;  /* Center horizontally */
@@ -25,17 +67,18 @@ nav {
 }
 
 .col-lg-8 {
-  background-color: rgba(255, 255, 255, 0);
+  background-color: rgba(255, 255, 255, 0.073);
 }
 
 .profile-img {
   box-shadow: 0px 8px 100px rgba(0, 0, 0, 0.847), 0px 4px 50px rgb(0, 0, 0);  /* Horizontal offset, Vertical offset, Blur radius, Shadow color */
-  transition: box-shadow 0.45s ease; /* Optional: smooth shadow effect on hover */
+  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.45s ease; /* Optional: smooth shadow effect on hover */
   margin-bottom: 35px;
 }
 
 .profile-img:hover {
   box-shadow: 0 18px 40px #71c28b; /* Increase shadow intensity on hover */
+  transform: scale(1.2);
 }
 
 /* Style the main text content section */
@@ -61,7 +104,7 @@ ul li {
 
 /* Hover effect for links */
 ul li a:hover {
-  color: green; /* Change text color to green on hover */
+  color: #71c28a; /* Change text color to green on hover */
   transform: scale(1.1); /* Expand the size of the text on hover */
 }
 
@@ -73,7 +116,7 @@ ul li a::after {
   left: 0; /* Start from the left */
   width: 0;
   height: 4px;
-  background-color: green;
+  background-color: #71c28a;
   transition: width 0.3s; /* Add transition for smooth animation */
 }
 
@@ -121,6 +164,10 @@ ul li a.active {
     font-size: 10px;
   }
   
+  .img-APlogo {
+    height: 40px; /* Reduce height for smaller screens */
+  }
+
   ul li {
     line-height: 40px;
     background-color: white;
