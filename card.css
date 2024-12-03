@@ -41,7 +41,7 @@
 .card-description {
     position: relative;
     display: grid;
-    font-size: 19px;
+    font-size: 17px;
     grid-template-columns: 75px 1fr;
     align-items: center;
     margin: 3rem 0 0;
