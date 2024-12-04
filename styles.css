@@ -29,11 +29,11 @@ nav {
   content: '';
   position: absolute;
   top: 50%; /* Start from the middle */
-  left: 53%; /* Start from the middle, slightly move it right to better fit the AP logo */
+  left: 54%; /* Start from the middle, slightly move it right to better fit the AP logo */
   transform: translate(-50%, -50%) scale(0); /* Center and hide initially */
-  width: 50px; /* Size of the blue box */
-  height: 50px; /* Size of the blue box */
-  background-color: #1b7bb794; /* Blue box with some transparency */
+  width: 75px; /* Size of the box */
+  height: 75px; 
+  background-color: #71c28b; /* Box with some transparency */
   border-radius: 50%; /* Make it circular */
   z-index: 1; /* Place it behind the logo */
   transition: transform 0.5s ease-in-out;
@@ -48,7 +48,7 @@ nav {
   width: 70px; /* Make width equal to height for a perfect circle */
   margin: 0 auto; /* Center within its container */
   z-index: 2; /* Keep the logo on top of the box */
-  transform: scale(1.6);
+  transform: scale(2.1);
   transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
   border-radius: 50%; /* Rounds the image */
   overflow: hidden; /* Ensures the image fits within the rounded boundary */
@@ -56,7 +56,7 @@ nav {
 }
 
 .img-APlogo:hover {
-  transform: scale(2); /* Scale the circular image */
+  transform: scale(2.9); /* Scale the circular image */
 }
 
 .col-lg-4 {
@@ -67,16 +67,23 @@ nav {
 }
 
 .col-lg-8 {
-  background-color: rgba(255, 255, 255, 0.073);
+  background-color: transparent;
 }
 
-.profile-img {
+.profile-img { 
+  /* Shadow */
   box-shadow: 0px 8px 100px rgba(0, 0, 0, 0.847), 0px 4px 50px rgb(0, 0, 0);  /* Horizontal offset, Vertical offset, Blur radius, Shadow color */
-  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.45s ease; /* Optional: smooth shadow effect on hover */
   margin-bottom: 35px;
+  /* Border */
+  border: 7px solid black; /* Black border when unselected */
+  border-radius: 50%; /* Make the border circular */
+  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), 
+              box-shadow 0.45s ease, 
+              border-color 0.3s ease;
 }
 
 .profile-img:hover {
+  border-color: #71c28b; /* Green border on hover */
   box-shadow: 0 18px 40px #71c28b; /* Increase shadow intensity on hover */
   transform: scale(1.2);
 }
@@ -98,7 +105,7 @@ ul li {
   list-style: none;
   display: inline-block;
   line-height: 60px;
-  background-color: white;
+  background-color: transparent;
   padding: 0 30px;
 }
 

@@ -43,6 +43,27 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById(page.split(".")[0]).classList.add('active');
 });
 
+window.addEventListener("DOMContentLoaded", () => {
+    const shapes = document.querySelectorAll('.background-shape');
+
+    shapes.forEach(shape => {
+        // Set a random position within the viewport
+        const randomTop = Math.random() * 100; // Random vertical position percentage
+        const randomLeft = Math.random() * 100; // Random horizontal position percentage
+        const randomSize = Math.random() * 50 + 50; // Random size between 50px and 100px
+
+        // Set a random delay for the animation
+        const randomDelay = Math.random() * 5; // Random delay between 0s and 5s
+
+        // Apply styles to each shape
+        shape.style.top = `${randomTop}%`;
+        shape.style.left = `${randomLeft}%`;
+        shape.style.width = `${randomSize}px`;
+        shape.style.height = `${randomSize}px`;
+        shape.style.animationDelay = `${randomDelay}s`; // Apply random delay for animation
+    });
+});
+
 // Smooth Scrolling
 document.querySelectorAll('a.nav-link').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
