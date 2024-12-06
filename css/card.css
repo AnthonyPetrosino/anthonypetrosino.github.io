@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap');
 
 .card-list {
-    background-image: linear-gradient(white, #71c28a, #ffffff);
+    background-image: linear-gradient(rgba(255, 255, 255, 0), #71c28a, #ffffff);
     display: grid;
     gap: 110px;
     grid-auto-flow: column;
