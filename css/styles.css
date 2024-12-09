@@ -77,9 +77,7 @@ nav {
   /* Border */
   border: 7px solid black; /* Black border when unselected */
   border-radius: 50%; /* Make the border circular */
-  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), 
-              box-shadow 0.45s ease, 
-              border-color 0.3s ease;
+  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.45s ease, border-color 0.3s ease;
 }
 
 .profile-img:hover {
@@ -93,6 +91,10 @@ section {
   padding: 20px;
   margin-top: 60px;
   color: black;
+}
+
+.education-card {
+  margin-top: 60px;
 }
 
 /* Style the unordered list */
@@ -163,6 +165,7 @@ a {
 ul li a.active {
   border: 1px solid green; /* Add a green border */
 }
+
 /* Media query for smaller screens */
 @media screen and (max-width: 600px) {
   /* Hide the navigation on mobile devices */

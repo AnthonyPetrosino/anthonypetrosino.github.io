@@ -3,7 +3,7 @@
 .card-list {
     background-image: linear-gradient(rgba(255, 255, 255, 0), #71c28a, #ffffff);
     display: grid;
-    gap: 110px;
+    gap: 90px;
     grid-auto-flow: column;
     grid-auto-columns: minmax(300px, 1fr);
     padding: 5rem;
@@ -39,6 +39,11 @@
 
 .card:not(:first-child) {
     margin-left: -100px;
+}
+
+.first-card-description {
+    margin-bottom: 200px;
+    align-items: center;
 }
 
 .card-description {
@@ -89,15 +94,6 @@
 .card-header h2 {
     font-size: 27px;
     margin: .25rem 0 auto;
-    cursor: pointer;
-}
-
-.card-header h2:hover {
-    background: #1B7CB7;
-    text-shadow: none;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: white;
 }
 
 .tags {
@@ -132,6 +128,40 @@
     /* -webkit-background-clip: text;
     -webkit-box-decoration-break: clone; */
     background-clip: unset;
+}
+
+.first-card {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    height: 450px; 
+    width: 200px; 
+    min-width: 200px; 
+    padding: 1.5rem;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: -1rem 0 3rem #000;
+    transition: .2s;
+    box-sizing: border-box;
+}
+
+.first-card .card-header {
+    background: #f9f9f9;
+    padding: 1rem;      
+    box-sizing: border-box;
+    border-bottom: 1px solid #c6c4c4; /* TODO Fix bottom border color */
+}
+
+.first-card:hover {
+    transform: translateY(-2rem);
+}
+
+.first-card:hover~.card {
+    transform: translateX(200px);
+}
+
+.card:not(:first-child) {
+    margin-left: -150px;
 }
 
 .card {

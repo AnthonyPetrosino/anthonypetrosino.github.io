@@ -108,13 +108,13 @@
 }
 
 .background-shape:nth-child(14) {
-    left: 90%;
+    left: 85%;
     down: -50%;
     animation-delay: 9s;
 }
 
 .background-shape:nth-child(15) {
-    left: 94%;
+    left: 88%;
     down: -50%;
     animation-delay: 0.2s;
 }
