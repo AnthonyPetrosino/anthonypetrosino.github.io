@@ -13,11 +13,11 @@
 }
 
 .card-list::-webkit-scrollbar {
-    /* Uncomment and adjust to add scroll bar
+    /* Uncomment and adjust to add scroll bar */
     width: 10px;
-    height: 10px;     */
-    width: 0px;
-    height: 0px; 
+    height: 10px;  
+    /* width: 0px;
+    height: 0px;  */
 }
 .card-list::-webkit-scrollbar-thumb {
     background: rgb(0, 0, 0);
