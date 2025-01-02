@@ -37,7 +37,7 @@
     }
 }
 
-/* Randomized positions for the shapes */
+/* Set positions for the shapes */
 .background-shape:nth-child(1) {
     left: -50%;
     animation-delay: 5s;

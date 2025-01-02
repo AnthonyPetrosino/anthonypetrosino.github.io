@@ -147,6 +147,13 @@ ul li a.active::after {
   margin-right: 10px; /* Add some spacing between the logo and the text */
 }
 
+.resume-btn {
+  font-size: 12px;
+  padding: 3px 8px;
+  margin-top: 10px;
+  display: inline-block; /* Ensure it's not centered */
+}
+
 /* Style links */
 ul li a {
   display: block;
