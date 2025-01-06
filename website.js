@@ -1,8 +1,8 @@
-var resumeButton = document.getElementById("resume");
-
+// Open resume pdf in a new tab
 document.getElementById("resume").addEventListener("click", function () {
     window.open("static/" + encodeURIComponent("Petrosino, Anthony Resume.pdf"), "_blank");
-    this.textContent = "Please enjoy reviewing my resume, feel free to contact me with more questions.";
+    // Alter button text after opening resume
+    this.textContent = "Enjoy reviewing my resume, please contact me with any questions.";
 });
 
 $(document).ready(function() {

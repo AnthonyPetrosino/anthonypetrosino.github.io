@@ -13,7 +13,7 @@
 }
 
 .card-list::-webkit-scrollbar {
-    /* Uncomment and adjust to add scroll bar */
+    /* Uncomment and adjust to add/remove scroll bar */
     width: 10px;
     height: 10px;  
     /* width: 0px;
@@ -35,15 +35,6 @@
 
 .card:hover~.card {
     transform: translateX(200px);
-}
-
-.card:not(:first-child) {
-    margin-left: -100px;
-}
-
-.first-card-description {
-    margin-bottom: 200px;
-    align-items: center;
 }
 
 .card-description {
@@ -128,40 +119,6 @@
     /* -webkit-background-clip: text;
     -webkit-box-decoration-break: clone; */
     background-clip: unset;
-}
-
-.first-card {
-    display: flex;
-    position: relative;
-    flex-direction: column;
-    height: 450px; 
-    width: 200px; 
-    min-width: 200px; 
-    padding: 1.5rem;
-    border-radius: 16px;
-    background: #ffffff;
-    box-shadow: -1rem 0 3rem #000;
-    transition: .2s;
-    box-sizing: border-box;
-}
-
-.first-card .card-header {
-    background: #f9f9f9;
-    padding: 1rem;      
-    box-sizing: border-box;
-    border-bottom: 1px solid #c6c4c4; /* TODO Fix bottom border color */
-}
-
-.first-card:hover {
-    transform: translateY(-2rem);
-}
-
-.first-card:hover~.card {
-    transform: translateX(200px);
-}
-
-.card:not(:first-child) {
-    margin-left: -150px;
 }
 
 .card {

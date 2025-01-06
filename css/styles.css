@@ -40,7 +40,7 @@ nav {
 }
 
 .navbar-brand:hover::before {
-  transform: translate(-50%, -50%) scale(1); /* Expand the blue box on hover */
+  transform: translate(-50%, -50%) scale(1); /* Expand the green box on hover */
 }
 
 .img-APlogo {
@@ -55,8 +55,10 @@ nav {
   position: relative; /* Ensure the hover effect applies correctly */
 }
 
+@media screen and (min-width: 1000px) {
 .img-APlogo:hover {
   transform: scale(2.9); /* Scale the circular image */
+}
 }
 
 .col-lg-4 {
@@ -86,9 +88,24 @@ nav {
   transform: scale(1.2);
 }
 
+.cards-message {
+  color: #000000;
+  text-align: center;
+  font-size: 2em;
+  margin-top: 20px;
+  margin-bottom: -50px;
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+  padding: 10px; 
+  /* Optional box/shadow */
+  /* background-color: #e1e1e1bb; 
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3);  */
+}
+
 /* Style the main text content section */
 section {
-  padding: 20px;
+  padding: 10px;
   margin-top: 60px;
   color: black;
 }
@@ -147,11 +164,24 @@ ul li a.active::after {
   margin-right: 10px; /* Add some spacing between the logo and the text */
 }
 
+/* Experience section */
+#experience {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.experience-title {
+  text-align: left;
+  margin-left: 30px;
+  font-size: 30px;
+}
+
 .resume-btn {
-  font-size: 12px;
-  padding: 3px 8px;
-  margin-top: 10px;
-  display: inline-block; /* Ensure it's not centered */
+  text-align: right;
+  font-size: 18px;
+  padding: 7px 14px;
+  margin-right: 14px;
 }
 
 /* Style links */

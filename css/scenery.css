@@ -37,89 +37,68 @@
     }
 }
 
-/* Set positions for the shapes */
-.background-shape:nth-child(1) {
-    left: -50%;
-    animation-delay: 5s;
-}
+/* Positions for the shapes with reduced shape number for smaller screens */
 
-.background-shape:nth-child(2) {
-    left: -11%;
-    animation-delay: 1s;
-}
+@media (min-width: 600px) {
+    .background-shape:nth-child(1) {
+        left: -50%;
+        animation-delay: 5s;
+    }
 
-.background-shape:nth-child(3) {
-    left: 10%;
-    down: -40%;
-    animation-delay: 6s;
+    .background-shape:nth-child(2) {
+        left: -11%;
+        animation-delay: 1s;
+    }
+
+    .background-shape:nth-child(3) {
+        left: 10%;
+        top: -40%;
+        animation-delay: 6s;
+    }
 }
 
 .background-shape:nth-child(4) {
     left: 17%;
-    animation-delay: 2.4s;
+    animation-delay: 2.1s;
 }
 
 .background-shape:nth-child(5) {
-    left: 23%;
-    animation-delay: 8.1s;
-}
-
-.background-shape:nth-child(6) {
     left: 35%;
-    down: -50%;
+    top: -50%;
     animation-delay: 4.4s;
 }
 
-.background-shape:nth-child(7) {
-    left: 40%;
-    animation-delay: 0.2s;
-}
-
-.background-shape:nth-child(8) {
+.background-shape:nth-child(6) {
     left: 45%;
     animation-delay: 3s;
 }
 
-.background-shape:nth-child(9) {
-    left: 50%;
-    down: 20%;
-    animation-delay: 1.1s;
-}
-
-.background-shape:nth-child(10) {
+.background-shape:nth-child(7) {
     left: 57%;
-    animation-delay: 5.6s;
+    animation-delay: 7.6s;
 }
 
-.background-shape:nth-child(11) {
-    left: 64%;
-    animation-delay: 3.1s;
+@media (min-width: 600px) {
+    .background-shape:nth-child(8) {
+        left: 64%;
+        animation-delay: 3.1s;
+    }
 }
 
-.background-shape:nth-child(12) {
+.background-shape:nth-child(9) {
     left: 72%;
-    animation-delay: 1s;
+    animation-delay: 1.5s;
 }
 
-.background-shape:nth-child(13) {
-    left: 80%;
-    down: -10%;
-    animation-delay: 4.8s;
-}
+@media (min-width: 600px) {
+    .background-shape:nth-child(10) {
+        left: 85%;
+        top: -50%;
+        animation-delay: 9s;
+    }
 
-.background-shape:nth-child(14) {
-    left: 85%;
-    down: -50%;
-    animation-delay: 9s;
-}
-
-.background-shape:nth-child(15) {
-    left: 88%;
-    down: -50%;
-    animation-delay: 0.2s;
-}
-
-.background-shape:nth-child(1) {
-    left: -60%;
-    animation-delay: 1s;
+    .background-shape:nth-child(11) {
+        left: -60%;
+        animation-delay: 1s;
+    }
 }
