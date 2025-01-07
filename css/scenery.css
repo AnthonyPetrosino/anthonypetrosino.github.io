@@ -7,7 +7,7 @@
     height: 80px; /* Shape height */
     background-color: var(--square-color, #71c28bd5); /* Color of the shape */
     z-index: -1; /* Ensure shapes are behind other content */
-    animation: moveDownLoop 7s linear infinite, fadeInOutRotate 20s ease-in-out infinite; /*Apple both animations*/
+    animation: moveDownLoop 9s linear infinite, fadeInOutRotate 20s ease-in-out infinite;
 }
 
 /* Keyframes for fade-in, fade-out, rotate, and move down the screen */
@@ -30,10 +30,10 @@
 /* Keyframes for moving the shape down the screen */
 @keyframes moveDownLoop {
     0% {
-        top: -10%;
+        top: -100px;
     }
     100% {
-        top: 120%; /* Move beyond the bottom of the screen */
+        top: 1000px; /* Move beyond the bottom of the screen */
     }
 }
 
@@ -69,35 +69,30 @@
 }
 
 .background-shape:nth-child(6) {
-    left: 45%;
-    animation-delay: 3s;
-}
-
-.background-shape:nth-child(7) {
     left: 57%;
     animation-delay: 7.6s;
 }
 
 @media (min-width: 600px) {
-    .background-shape:nth-child(8) {
+    .background-shape:nth-child(7) {
         left: 64%;
         animation-delay: 3.1s;
     }
 }
 
-.background-shape:nth-child(9) {
+.background-shape:nth-child(8) {
     left: 72%;
-    animation-delay: 1.5s;
+    animation-delay: 13s;
 }
 
 @media (min-width: 600px) {
-    .background-shape:nth-child(10) {
+    .background-shape:nth-child(9) {
         left: 85%;
         top: -50%;
         animation-delay: 9s;
     }
 
-    .background-shape:nth-child(11) {
+    .background-shape:nth-child(10) {
         left: -60%;
         animation-delay: 1s;
     }

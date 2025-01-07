@@ -165,23 +165,33 @@ ul li a.active::after {
 }
 
 /* Experience section */
-#experience {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .experience-title {
-  text-align: left;
-  margin-left: 30px;
+  text-align: center;
+  margin-bottom: 10px;
   font-size: 30px;
 }
 
 .resume-btn {
-  text-align: right;
-  font-size: 18px;
-  padding: 7px 14px;
-  margin-right: 14px;
+  display: block;
+  margin: 10px auto;
+}
+
+.job-section {
+  text-align: left;
+  margin: 20px auto;
+  width: 80%;
+}
+
+.experience-point {
+  margin-left: -25px;
+}
+
+hr {
+  border: none; /* Remove default styling */
+  height: 3px; /* Thickness of the line */
+  background-color: #71c28a; /* Line color */
+  width: 80%; /* Line width */
+  margin: 20px auto; /* Center the line and add space around it */
 }
 
 /* Style links */
