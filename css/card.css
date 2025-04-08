@@ -6,7 +6,7 @@
     gap: 90px;
     grid-auto-flow: column;
     grid-auto-columns: minmax(300px, 1fr);
-    padding: 5rem;
+    padding: 4rem;
     overflow-x: auto;
     width: 100%;  
     box-sizing: border-box; 
@@ -14,8 +14,8 @@
 
 .card-list::-webkit-scrollbar {
     /* Uncomment and adjust to add/remove scroll bar */
-    width: 10px;
-    height: 10px;  
+    width: 20px;
+    height: 12px;  
     /* width: 0px;
     height: 0px;  */
 }
@@ -48,7 +48,7 @@
 }
 
 .card-avatar img {
-    display: block;
+    display: 2;
     width: 50px;
     height: 50px;
     /* margin: 16px 10px; */
@@ -134,13 +134,13 @@
     display: flex;
     position: relative;
     flex-direction: column;
-    height: 475px; 
-    width: 500px; 
+    height: 460px; 
+    width: 520px; 
     min-width: 500px; 
     padding: 1.5rem;
     border-radius: 16px;
     background: #ffffff;
-    box-shadow: -1rem 0 3rem #000;
+    box-shadow: -1rem 0 2rem #000;
     transition: .2s;
     box-sizing: border-box;
 }
