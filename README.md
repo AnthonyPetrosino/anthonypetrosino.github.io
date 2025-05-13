@@ -4,4 +4,4 @@ This site showcases my skills, projects, and experience as a computer science st
 
 Visit my protfolio website at [anthonypetrosino.github.io](anthonypetrosino.github.io).
 
-If you have any feedback, suggestions, or spot any issues, feel free to open an issue or contact me directly!
+If you have any feedback, suggestions, or spot any issues, feel free to open an issue or contact me directly.
