@@ -1,6 +1,6 @@
 // Open resume pdf in a new tab
 document.getElementById("resume").addEventListener("click", function () {
-    window.open("static/" + encodeURIComponent("Anthony Petrosino Resume.pdf"), "_blank");
+    window.open("static/Anthony-Petrosino-Resume.pdf", "_blank");
     // Alter button text after opening resume
     this.textContent = "Enjoy reviewing my resume, please contact me with any questions.";
 });
