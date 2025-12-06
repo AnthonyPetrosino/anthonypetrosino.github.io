@@ -3,6 +3,10 @@ let score = 0;
 let bestScore = 0;
 let hasWon = false;
 let isAnimating = false;
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
 
 function initBoard() {
     board = [
@@ -266,7 +270,61 @@ function newGame() {
     updateDisplay();
 }
 
+function handleSwipe() {
+    if (isAnimating) return;
+    
+    let deltaX = touchEndX - touchStartX;
+    let deltaY = touchEndY - touchStartY;
+    let minSwipeDistance = 30;
+    
+    if (Math.abs(deltaX) < minSwipeDistance && Math.abs(deltaY) < minSwipeDistance) {
+        return;
+    }
+    
+    let moved = false;
+    
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX > 0) {
+            moved = moveRight();
+        } else {
+            moved = moveLeft();
+        }
+    } else {
+        if (deltaY > 0) {
+            moved = moveDown();
+        } else {
+            moved = moveUp();
+        }
+    }
+    
+    if (moved) {
+        isAnimating = true;
+        updateDisplay(true);
+        
+        setTimeout(() => {
+            addRandomTile();
+            updateDisplay();
+            isAnimating = false;
+            
+            if (isGameOver()) {
+                setTimeout(() => alert('Game Over!'), 100);
+            }
+        }, 100);
+    }
+}
+
 document.addEventListener('keydown', handleKeyPress);
+
+document.addEventListener('touchstart', function(event) {
+    touchStartX = event.changedTouches[0].screenX;
+    touchStartY = event.changedTouches[0].screenY;
+}, false);
+
+document.addEventListener('touchend', function(event) {
+    touchEndX = event.changedTouches[0].screenX;
+    touchEndY = event.changedTouches[0].screenY;
+    handleSwipe();
+}, false);
 
 document.addEventListener('DOMContentLoaded', function() {
     bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
