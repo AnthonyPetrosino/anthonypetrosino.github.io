@@ -4,4 +4,14 @@ This site showcases my skills, projects, and experience as a computer science st
 
 Visit my protfolio website at [anthonypetrosino.github.io](anthonypetrosino.github.io).
 
+## Todo:
+### Portfolio:
+	[] Update: Update cards
+### 2048:
+	[] Feature: Timer for speed runs
+	[] UI: Change colors
+	[] UI: Slide animations
+	[] Online: Leaderboard
+	[] Online: Add friends
+
 If you have any feedback, suggestions, or spot any issues, feel free to open an issue or contact me directly.
