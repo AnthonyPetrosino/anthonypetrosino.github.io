@@ -8,6 +8,11 @@ let touchStartY = 0;
 let touchEndX = 0;
 let touchEndY = 0;
 
+const tileValues = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048];
+const defaultMinColor = '#eee4da';
+const defaultMaxColor = '#17811d';
+let activeScheme = null;
+
 function initBoard() {
     board = [
         [0, 0, 0, 0],
@@ -326,8 +331,149 @@ document.addEventListener('touchend', function(event) {
     handleSwipe();
 }, false);
 
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(x => {
+        const hex = Math.round(x).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+}
+
+function interpolateColor(color1, color2, factor) {
+    const rgb1 = hexToRgb(color1);
+    const rgb2 = hexToRgb(color2);
+    const r = rgb1.r + factor * (rgb2.r - rgb1.r);
+    const g = rgb1.g + factor * (rgb2.g - rgb1.g);
+    const b = rgb1.b + factor * (rgb2.b - rgb1.b);
+    return rgbToHex(r, g, b);
+}
+
+function getLuminance(hex) {
+    const rgb = hexToRgb(hex);
+    const r = rgb.r / 255;
+    const g = rgb.g / 255;
+    const b = rgb.b / 255;
+    const a = [r, g, b].map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+    return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+}
+
+function applyColorScheme(minColor, maxColor) {
+    const root = document.documentElement;
+    
+    tileValues.forEach((value, index) => {
+        const factor = index / (tileValues.length - 1);
+        const color = interpolateColor(minColor, maxColor, factor);
+        const luminance = getLuminance(color);
+        const textColor = luminance > 0.5 ? '#776e65' : '#f9f6f2';
+        
+        root.style.setProperty(`--tile-${value}-color`, color);
+        root.style.setProperty(`--tile-${value}-text`, textColor);
+    });
+    
+    localStorage.setItem('minColor', minColor);
+    localStorage.setItem('maxColor', maxColor);
+}
+
+function resetColors() {
+    document.getElementById('minColor').value = defaultMinColor;
+    document.getElementById('maxColor').value = defaultMaxColor;
+    applyColorScheme(defaultMinColor, defaultMaxColor);
+}
+
+function loadColorPreferences() {
+    const minColor = localStorage.getItem('minColor') || defaultMinColor;
+    const maxColor = localStorage.getItem('maxColor') || defaultMaxColor;
+    
+    document.getElementById('minColor').value = minColor;
+    document.getElementById('maxColor').value = maxColor;
+    
+    applyColorScheme(minColor, maxColor);
+}
+
+function saveCurrentScheme() {
+    const schemeNumber = document.getElementById('schemeSelect').value;
+    const minColor = document.getElementById('minColor').value;
+    const maxColor = document.getElementById('maxColor').value;
+    
+    const scheme = { min: minColor, max: maxColor };
+    localStorage.setItem(`colorScheme${schemeNumber}`, JSON.stringify(scheme));
+    
+    updateSchemePreview(schemeNumber);
+    setActiveScheme(schemeNumber);
+    console.log(`Saved scheme ${schemeNumber}:`, scheme);
+}
+
+function loadScheme(schemeNumber) {
+    const schemeData = localStorage.getItem(`colorScheme${schemeNumber}`);
+    
+    if (schemeData) {
+        const scheme = JSON.parse(schemeData);
+        document.getElementById('minColor').value = scheme.min;
+        document.getElementById('maxColor').value = scheme.max;
+        applyColorScheme(scheme.min, scheme.max);
+        setActiveScheme(schemeNumber);
+        console.log(`Loaded scheme ${schemeNumber}:`, scheme);
+    }
+}
+
+function updateSchemePreview(schemeNumber) {
+    const btn = document.getElementById(`scheme-${schemeNumber}`);
+    const schemeData = localStorage.getItem(`colorScheme${schemeNumber}`);
+    
+    if (schemeData) {
+        const scheme = JSON.parse(schemeData);
+        btn.style.background = `linear-gradient(to right, ${scheme.min}, ${scheme.max})`;
+        btn.classList.remove('empty');
+        btn.textContent = '';
+    } else {
+        btn.style.background = '';
+        btn.classList.add('empty');
+        btn.textContent = 'Empty';
+    }
+}
+
+function setActiveScheme(schemeNumber) {
+    document.querySelectorAll('.scheme-btn').forEach(btn => btn.classList.remove('active'));
+    if (schemeNumber) {
+        document.getElementById(`scheme-${schemeNumber}`).classList.add('active');
+        activeScheme = schemeNumber;
+    }
+}
+
+function initializeSchemes() {
+    for (let i = 1; i <= 5; i++) {
+        updateSchemePreview(i);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
     document.getElementById('best').textContent = bestScore;
+    
+    initializeSchemes();
+    loadColorPreferences();
+    
+    document.getElementById('minColor').addEventListener('input', function() {
+        const minColor = this.value;
+        const maxColor = document.getElementById('maxColor').value;
+        applyColorScheme(minColor, maxColor);
+        setActiveScheme(null);
+    });
+    
+    document.getElementById('maxColor').addEventListener('input', function() {
+        const minColor = document.getElementById('minColor').value;
+        const maxColor = this.value;
+        applyColorScheme(minColor, maxColor);
+        setActiveScheme(null);
+    });
+    
     newGame();
 });
