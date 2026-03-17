@@ -1,95 +1,240 @@
-/* Reset default margin, padding, and background color */
-* {
-  margin: 0;
-  padding: 0;
-  background-color: rgba(255, 255, 255, 0);
+/* ══════════════════════════════════════
+   CSS VARIABLES
+   ══════════════════════════════════════ */
+:root {
+  /* backgrounds */
+  --bg-body:      #ffffff;
+  --bg-alt:       #e8e8e8;
+  --bg-section:   #ffffff;
+
+  /* text */
+  --text-primary:   #111111;
+  --text-secondary: #444444;
+  --text-muted:     #666666;
+
+  /* nav */
+  --nav-bg:         #e8e8e8;
+  --nav-link:       rgba(0, 0, 0, 0.75);
+  --nav-link-hover: #71c28a;
+
+  /* accents */
+  --green:   #71c28a;
+  --blue:    #1B7CB7;
+  --hr-color: #71c28a;
+
+  /* links */
+  --link-color: #111111;
+
+  /* logo */
+  --logo-filter: none;
+
+  /* toggle btn */
+  --toggle-color: #111111;
 }
 
-/* Set font and text color */
+body.dark {
+  --bg-body:      #0d0d0d;
+  --bg-alt:       #161616;
+  --bg-section:   #0d0d0d;
+
+  --text-primary:   #f0f0f0;
+  --text-secondary: #cccccc;
+  --text-muted:     #999999;
+
+  --nav-bg:         #161616;
+  --nav-link:       rgba(240, 240, 240, 0.85);
+  --nav-link-hover: #71c28a;
+
+  --hr-color: #71c28a;
+  --link-color: #e0e0e0;
+  --logo-filter: invert(1);
+  --toggle-color: #f0f0f0;
+}
+
+/* ══════════════════════════════════════
+   RESET & BASE
+   ══════════════════════════════════════ */
+* { margin: 0; padding: 0; }
+
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Inter', Arial, sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Style the navigation */
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+/* ══════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════ */
 nav {
   width: 100%;
-  height: 20%;
-  background-color: white;
+  background-color: var(--nav-bg) !important;
+  transition: background-color 0.3s ease;
 }
 
+.navbar-light .navbar-nav .nav-link {
+  color: var(--nav-link);
+  transition: color 0.2s;
+}
+
+.navbar-light .navbar-nav .nav-link:hover {
+  color: var(--nav-link-hover);
+}
+
+.navbar-light .navbar-toggler {
+  border-color: rgba(128, 128, 128, 0.4);
+}
+
+body.dark .navbar-light .navbar-toggler-icon {
+  filter: invert(1);
+}
+
+/* ── Dark mode toggle button ── */
+#theme-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-right: 0.5rem;
+}
+
+.toggle-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 64px;
+  height: 32px;
+  border-radius: 999px;
+  background-color: #c8c8c8;
+  border: 2px solid #aaaaaa;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  padding: 0 4px;
+}
+
+body.dark .toggle-track {
+  background-color: #1e3a2a;
+  border-color: #71c28a;
+}
+
+.toggle-thumb {
+  position: absolute;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+  z-index: 2;
+}
+
+body.dark .toggle-thumb {
+  transform: translateX(32px);
+  background-color: #71c28a;
+}
+
+.toggle-icon {
+  position: absolute;
+  font-size: 0.75rem;
+  line-height: 1;
+  z-index: 1;
+  transition: opacity 0.2s ease;
+  user-select: none;
+}
+
+.toggle-sun  { left: 6px;  }
+.toggle-moon { right: 6px; }
+
+/* in light mode: show sun (left), hide moon */
+.toggle-sun  { opacity: 0; }
+.toggle-moon { opacity: 1; }
+
+/* in dark mode: show moon (right), hide sun */
+body.dark .toggle-sun  { opacity: 1; }
+body.dark .toggle-moon { opacity: 0; }
+
+/* ── Navbar brand / logo ── */
 .navbar-brand {
   display: flex;
-  align-items: center; /* Vertically center the logo */
-  justify-content: center; /* Horizontally center if needed */
-  height: 100%; /* Ensure it takes the full height of the navbar */
-  position: relative; /* Required for positioning the box behind the AP logo */
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
 }
 
 .navbar-brand::before {
   content: '';
   position: absolute;
-  top: 50%; /* Start from the middle */
-  left: 54%; /* Start from the middle, slightly move it right to better fit the AP logo */
-  transform: translate(-50%, -50%) scale(0); /* Center and hide initially */
-  width: 75px; /* Size of the box */
-  height: 75px; 
-  background-color: #71c28b; /* Box with some transparency */
-  border-radius: 50%; /* Make it circular */
-  z-index: 1; /* Place it behind the logo */
+  top: 50%;
+  left: 54%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 75px;
+  height: 75px;
+  background-color: var(--green);
+  border-radius: 50%;
+  z-index: 1;
   transition: transform 0.5s ease-in-out;
 }
 
 .navbar-brand:hover::before {
-  transform: translate(-50%, -50%) scale(1); /* Expand the green box on hover */
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .img-APlogo {
-  height: 70px; /* Adjust the logo height */
-  width: 70px; /* Make width equal to height for a perfect circle */
-  margin: 0 auto; /* Center within its container */
-  z-index: 2; /* Keep the logo on top of the box */
+  height: 70px;
+  width: 70px;
+  margin: 0 auto;
+  z-index: 2;
   transform: scale(2.1);
-  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
-  border-radius: 50%; /* Rounds the image */
-  overflow: hidden; /* Ensures the image fits within the rounded boundary */
-  position: relative; /* Ensure the hover effect applies correctly */
+  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), filter 0.3s ease;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  filter: var(--logo-filter);
 }
 
 @media screen and (min-width: 1000px) {
-.img-APlogo:hover {
-  transform: scale(2.9); /* Scale the circular image */
-}
+  .img-APlogo:hover {
+    transform: scale(2.9);
+  }
 }
 
+/* ══════════════════════════════════════
+   HOME SECTION
+   ══════════════════════════════════════ */
 .col-lg-4 {
   display: flex;
-  justify-content: center;  /* Center horizontally */
-  align-items: center;      /* Center vertically (if the container has a fixed height) */
-  height: 100%;             /* Optional: ensures the flex container takes full height of its parent */
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }
 
-.col-lg-8 {
-  background-color: transparent;
-}
-
-.profile-img { 
-  /* Shadow */
-  box-shadow: 0px 8px 100px rgba(0, 0, 0, 0.847), 0px 4px 50px rgb(0, 0, 0);  /* Horizontal offset, Vertical offset, Blur radius, Shadow color */
+.profile-img {
+  box-shadow: 0px 6px 30px rgba(0, 0, 0, 0.45), 0px 2px 10px rgba(0, 0, 0, 0.3);
   margin-bottom: 35px;
-  /* Border */
-  border: 7px solid black; /* Black border when unselected */
-  border-radius: 50%; /* Make the border circular */
+  border: 4px solid var(--green);
+  border-radius: 50%;
   transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.45s ease, border-color 0.3s ease;
 }
 
 .profile-img:hover {
-  border-color: #71c28b; /* Green border on hover */
-  box-shadow: 0 18px 40px #71c28b; /* Increase shadow intensity on hover */
-  transform: scale(1.2);
+  border-color: #ffffff;
+  box-shadow: 0 0 0 6px var(--green), 0 16px 40px rgba(113, 194, 139, 0.5);
+  transform: scale(1.08);
 }
 
+/* ══════════════════════════════════════
+   CARDS HEADING
+   ══════════════════════════════════════ */
 .cards-message {
-  color: #000000;
+  color: var(--text-primary);
   text-align: center;
   font-size: 2em;
   margin-top: 20px;
@@ -97,29 +242,33 @@ nav {
   margin-left: auto;
   margin-right: auto;
   width: fit-content;
-  padding: 10px; 
-  /* Optional box/shadow */
-  /* background-color: #e1e1e1bb; 
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3);  */
+  padding: 10px;
 }
 
-/* Style the main text content section */
+/* ══════════════════════════════════════
+   SECTIONS
+   ══════════════════════════════════════ */
 section {
   padding: 10px;
   margin-top: 60px;
-  color: black;
+  color: var(--text-primary);
+  background-color: var(--bg-section);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.education-card {
-  margin-top: 60px;
+/* Home and cards sections need transparent bg so squares show through */
+#home,
+#education {
+  background-color: transparent !important;
 }
 
-/* Style the unordered list */
+/* ══════════════════════════════════════
+   LISTS (contact + nav)
+   ══════════════════════════════════════ */
 ul {
   margin-left: 60px;
 }
 
-/* Style list items */
 ul li {
   list-style: none;
   display: inline-block;
@@ -128,47 +277,50 @@ ul li {
   padding: 0 30px;
 }
 
-/* Hover effect for links */
-ul li a:hover {
-  color: #71c28a; /* Change text color to green on hover */
-  transform: scale(1.1); /* Expand the size of the text on hover */
+ul li a {
+  display: block;
+  text-decoration: none;
+  font-size: 18px;
+  color: var(--link-color);
+  position: relative;
 }
 
-/* Add green underline effect */
+ul li a:hover {
+  color: var(--green);
+}
+
 ul li a::after {
   content: '';
-  position: absolute; /* Position the underline */
-  bottom: 0; /* Align to the bottom of the link */
-  left: 0; /* Start from the left */
+  position: absolute;
+  bottom: 0;
+  left: 0;
   width: 0;
   height: 4px;
-  background-color: #71c28a;
-  transition: width 0.3s; /* Add transition for smooth animation */
+  background-color: var(--green);
+  transition: width 0.3s;
 }
-
 
 ul li a:hover::after {
-  width: 100%; /* Expand the underline on hover */
+  width: 100%;
 }
 
-/* Style the active link */
 ul li a.active::after {
-  width: 100%; /* Expand the underline */
-  background-color: green;
+  width: 100%;
+  background-color: var(--green);
 }
 
-/* Set Logo Size */
-.img-logo {
-  width: 50px; /* Set the width of the logos */
-  height: auto; /* Maintain aspect ratio */
-  margin-right: 10px; /* Add some spacing between the logo and the text */
+ul li a.active {
+  border: 1px solid var(--green);
 }
 
-/* Experience section */
+/* ══════════════════════════════════════
+   EXPERIENCE SECTION
+   ══════════════════════════════════════ */
 .experience-title {
   text-align: center;
   margin-bottom: 10px;
   font-size: 30px;
+  color: var(--text-primary);
 }
 
 .resume-btn {
@@ -180,66 +332,54 @@ ul li a.active::after {
   text-align: left;
   margin: 20px auto;
   width: 80%;
+  color: var(--text-secondary);
+}
+
+.job-section h4 {
+  color: var(--text-primary);
+}
+
+.job-section p, .job-section i {
+  color: var(--text-secondary);
 }
 
 .experience-point {
   margin-left: -25px;
+  color: var(--text-secondary);
 }
 
 hr {
-  border: none; /* Remove default styling */
-  height: 3px; /* Thickness of the line */
-  background-color: #71c28a; /* Line color */
-  width: 80%; /* Line width */
-  margin: 20px auto; /* Center the line and add space around it */
+  border: none;
+  height: 3px;
+  background-color: var(--hr-color);
+  width: 80%;
+  margin: 20px auto;
 }
 
-/* Style links */
-ul li a {
-  display: block;
-  text-decoration: none;
-  font-size: 18px;
-  color: black;
-  position: relative; /* Position relative for absolute positioning of the underline */
+/* ══════════════════════════════════════
+   CONTACT SECTION
+   ══════════════════════════════════════ */
+.contact-section {
+  background-color: var(--bg-alt) !important;
+  transition: background-color 0.3s ease;
 }
 
-a {
-  color: black; /* Replace with any color you prefer */
-  text-decoration: none; /* Removes the underline */
+/* ══════════════════════════════════════
+   MISC
+   ══════════════════════════════════════ */
+.img-logo {
+  width: 50px;
+  height: auto;
+  margin-right: 10px;
 }
 
-/* Add border around the selected item */
-ul li a.active {
-  border: 1px solid green; /* Add a green border */
-}
-
-/* Media query for smaller screens */
+/* ══════════════════════════════════════
+   MOBILE
+   ══════════════════════════════════════ */
 @media screen and (max-width: 600px) {
-  /* Hide the navigation on mobile devices */
-  nav {
-    display: none;
-  }
-  
-  /* Adjust styles for smaller screens */
-  ul li a {
-    font-size: 10px;
-  }
-  
-  .img-APlogo {
-    height: 40px; /* Reduce height for smaller screens */
-    width: 40px;
-  }
-
-  .navbar-brand {
-    display: none;
-  }
-
-  ul li {
-    line-height: 40px;
-    background-color: white;
-  }
-  
-  ul {
-    margin-left: 5px;
-  }
+  ul li a { font-size: 10px; }
+  .img-APlogo { height: 40px; width: 40px; }
+  .navbar-brand { display: none; }
+  ul li { line-height: 40px; background-color: transparent; }
+  ul { margin-left: 5px; }
 }
