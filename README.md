@@ -6,10 +6,10 @@ Visit my protfolio website at [anthonypetrosino.github.io](anthonypetrosino.gith
 
 ## Todo:
 ### Portfolio:
-	[] Update: Update cards
+	[x] Update: Update cards
 ### 2048:
 	[] Feature: Timer for speed runs
-	[] UI: Change colors
+	[x] UI: Change colors
 	[] UI: Slide animations
 	[] Online: Leaderboard
 	[] Online: Add friends
