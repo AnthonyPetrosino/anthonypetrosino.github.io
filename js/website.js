@@ -82,5 +82,21 @@ document.querySelectorAll('a.nav-link').forEach(anchor => {
     nextBtn.addEventListener('click', () => { index = clamp(index + 1); update(); });
     window.addEventListener('resize', update);
 
+    // Trackpad horizontal scroll (two-finger drag)
+    let scrollAccum = 0;
+    const SCROLL_THRESHOLD = 50;
+
+    viewport.addEventListener('wheel', (e) => {
+        // Only handle when horizontal movement is dominant
+        if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+        e.preventDefault();
+        scrollAccum += e.deltaX;
+        if (Math.abs(scrollAccum) >= SCROLL_THRESHOLD) {
+            index = clamp(index + (scrollAccum > 0 ? 1 : -1));
+            scrollAccum = 0;
+            update();
+        }
+    }, { passive: false });
+
     update();
 })();
