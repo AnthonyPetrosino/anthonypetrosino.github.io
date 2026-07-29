@@ -1,7 +1,575 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta http-equiv="refresh" content="0; url=/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 - Page Not Found | Anthony Petrosino</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: #0b3b3c;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  /* ---------- Pond canvas ---------- */
+  #pond {
+    position: fixed;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+  }
+
+  /* Soft vignette so the centered text stays readable over the water */
+  .vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center,
+                rgba(4, 26, 28, 0.55) 0%,
+                rgba(4, 26, 28, 0.25) 45%,
+                rgba(4, 26, 28, 0.7) 100%);
+  }
+
+  /* ---------- Centered content ---------- */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    pointer-events: none; /* let clicks through to the pond */
+  }
+
+  .code {
+    font-size: clamp(4.5rem, 16vw, 10rem);
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    color: #f4fbf8;
+    text-shadow: 0 4px 40px rgba(0, 0, 0, 0.55);
+  }
+
+  .headline {
+    margin-top: 0.5rem;
+    font-size: clamp(1rem, 3.4vw, 1.5rem);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #eaf7f2;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+  }
+
+  .sub {
+    margin-top: 0.75rem;
+    max-width: 30rem;
+    font-size: 0.95rem;
+    font-weight: 300;
+    line-height: 1.6;
+    color: rgba(234, 247, 242, 0.78);
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+  }
+
+  .home-link {
+    pointer-events: auto;
+    margin-top: 2rem;
+    display: inline-block;
+    padding: 0.75rem 1.75rem;
+    border: 1px solid rgba(113, 194, 139, 0.8);
+    border-radius: 999px;
+    background: rgba(113, 194, 139, 0.12);
+    color: #d8f2e2;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    backdrop-filter: blur(4px);
+    transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+  }
+
+  .home-link:hover,
+  .home-link:focus-visible {
+    background: #71c28a;
+    color: #06272a;
+    transform: translateY(-2px);
+    outline: none;
+  }
+
+  .home-link:focus-visible { box-shadow: 0 0 0 3px rgba(113, 194, 139, 0.45); }
+
+  .hint {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    color: rgba(234, 247, 242, 0.5);
+    pointer-events: none;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+  }
+
+  @media (max-width: 480px) {
+    .sub { font-size: 0.875rem; }
+    .hint { font-size: 0.7rem; }
+  }
+</style>
 </head>
-<body></body>
+<body>
+
+<canvas id="pond" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<main class="overlay">
+  <p class="code">404</p>
+  <h1 class="headline">Page Not Found</h1>
+  <p class="sub">This page swam off somewhere. Feed the koi while you are here, then head back to solid ground.</p>
+  <a class="home-link" href="/">Return Home</a>
+</main>
+
+<p class="hint" aria-hidden="true">move your cursor to disturb the water &middot; click to feed the koi</p>
+
+<script>
+(function () {
+  'use strict';
+
+  const canvas = document.getElementById('pond');
+  const ctx = canvas.getContext('2d');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const speedScale = reduceMotion ? 0.4 : 1;
+
+  let W = 0, H = 0;
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  /* ------------------------------------------------------------------
+     Small vector helpers (kept inline to avoid any library overhead)
+  ------------------------------------------------------------------ */
+  function limit(v, max) {
+    const m = Math.hypot(v.x, v.y);
+    if (m > max && m > 0) { v.x = (v.x / m) * max; v.y = (v.y / m) * max; }
+    return v;
+  }
+
+  function setMag(v, mag) {
+    const m = Math.hypot(v.x, v.y);
+    if (m > 0) { v.x = (v.x / m) * mag; v.y = (v.y / m) * mag; }
+    return v;
+  }
+
+  /* ------------------------------------------------------------------
+     Interaction state
+  ------------------------------------------------------------------ */
+  const mouse = { x: -9999, y: -9999, active: false };
+  const ripples = [];
+  const food = [];
+
+  const REPEL_RADIUS = 130;   // how close the cursor has to be to scatter fish
+  const FOOD_SENSE = 460;     // how far a koi can smell a pellet
+  const FOOD_LIFE = 9;        // seconds before a pellet dissolves
+
+  function addRipple(x, y, maxR, strength) {
+    if (ripples.length > 60) ripples.shift();
+    ripples.push({ x: x, y: y, r: 2, maxR: maxR, alpha: strength });
+  }
+
+  let lastRippleAt = 0;
+  canvas.addEventListener('mousemove', function (e) {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.active = true;
+    const now = performance.now();
+    if (!reduceMotion && now - lastRippleAt > 90) {
+      lastRippleAt = now;
+      addRipple(mouse.x, mouse.y, 44 + Math.random() * 26, 0.28);
+    }
+  });
+
+  canvas.addEventListener('mouseleave', function () {
+    mouse.active = false;
+    mouse.x = mouse.y = -9999;
+  });
+
+  function dropFood(x, y) {
+    if (food.length > 24) food.shift();
+    food.push({ x: x, y: y, life: FOOD_LIFE, max: FOOD_LIFE, drift: (Math.random() - 0.5) * 0.12 });
+    addRipple(x, y, 120, 0.6);
+    addRipple(x, y, 70, 0.45);
+  }
+
+  canvas.addEventListener('click', function (e) {
+    dropFood(e.clientX, e.clientY);
+  });
+
+  // Touch support: tap to feed, drag to disturb.
+  canvas.addEventListener('touchstart', function (e) {
+    const t = e.touches[0];
+    dropFood(t.clientX, t.clientY);
+  }, { passive: true });
+
+  canvas.addEventListener('touchmove', function (e) {
+    const t = e.touches[0];
+    mouse.x = t.clientX;
+    mouse.y = t.clientY;
+    mouse.active = true;
+  }, { passive: true });
+
+  canvas.addEventListener('touchend', function () { mouse.active = false; }, { passive: true });
+
+  /* ------------------------------------------------------------------
+     Koi
+  ------------------------------------------------------------------ */
+  const PALETTE = [
+    { body: '#f4f1e8', accent: '#e8622c' },  // kohaku (white + orange)
+    { body: '#ef7239', accent: '#f9e6c8' },  // orange
+    { body: '#f6c96b', accent: '#e8a02c' },  // gold
+    { body: '#f4f1e8', accent: '#d94f28' },  // white + deep red
+    { body: '#ffb257', accent: '#f7f2e6' }   // amber
+  ];
+
+  function Koi(i, total) {
+    const angle = Math.random() * Math.PI * 2;
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.vx = Math.cos(angle);
+    this.vy = Math.sin(angle);
+
+    this.len = 20 + Math.random() * 16;                 // body length in px
+    this.maxSpeed = (0.55 + Math.random() * 0.4) * speedScale;
+    this.maxForce = 0.035;
+    this.phase = Math.random() * Math.PI * 2;           // tail wave offset
+    this.depth = 0.55 + Math.random() * 0.45;           // fake depth -> opacity + scale
+    const c = PALETTE[i % PALETTE.length];
+    this.body = c.body;
+    this.accent = c.accent;
+    this.spots = [];
+    const spotCount = 1 + Math.floor(Math.random() * 3);
+    for (let s = 0; s < spotCount; s++) {
+      this.spots.push({
+        along: -0.25 + Math.random() * 0.85,
+        off: (Math.random() - 0.5) * 0.35,
+        r: 0.13 + Math.random() * 0.16
+      });
+    }
+    this.wander = Math.random() * Math.PI * 2;
+  }
+
+  Koi.prototype.steerTo = function (tx, ty, weight) {
+    const d = { x: tx - this.x, y: ty - this.y };
+    setMag(d, this.maxSpeed);
+    d.x -= this.vx; d.y -= this.vy;
+    limit(d, this.maxForce);
+    return { x: d.x * weight, y: d.y * weight };
+  };
+
+  Koi.prototype.flock = function (school) {
+    const sepR = 46, alignR = 96, cohR = 130;
+    let sep = { x: 0, y: 0 }, ali = { x: 0, y: 0 }, coh = { x: 0, y: 0 };
+    let sepN = 0, aliN = 0, cohN = 0;
+
+    for (let i = 0; i < school.length; i++) {
+      const o = school[i];
+      if (o === this) continue;
+      const dx = this.x - o.x, dy = this.y - o.y;
+      const d = Math.hypot(dx, dy);
+      if (d === 0) continue;
+      if (d < sepR) { sep.x += (dx / d) / d; sep.y += (dy / d) / d; sepN++; }
+      if (d < alignR) { ali.x += o.vx; ali.y += o.vy; aliN++; }
+      if (d < cohR) { coh.x += o.x; coh.y += o.y; cohN++; }
+    }
+
+    const acc = { x: 0, y: 0 };
+
+    if (sepN) {
+      setMag(sep, this.maxSpeed);
+      sep.x -= this.vx; sep.y -= this.vy;
+      limit(sep, this.maxForce * 1.6);
+      acc.x += sep.x * 1.5; acc.y += sep.y * 1.5;
+    }
+    if (aliN) {
+      ali.x /= aliN; ali.y /= aliN;
+      setMag(ali, this.maxSpeed);
+      ali.x -= this.vx; ali.y -= this.vy;
+      limit(ali, this.maxForce);
+      acc.x += ali.x * 0.9; acc.y += ali.y * 0.9;
+    }
+    if (cohN) {
+      const c = this.steerTo(coh.x / cohN, coh.y / cohN, 0.7);
+      acc.x += c.x; acc.y += c.y;
+    }
+    return acc;
+  };
+
+  Koi.prototype.avoidEdges = function () {
+    const m = 90;
+    const acc = { x: 0, y: 0 };
+    if (this.x < m) acc.x += (1 - this.x / m) * this.maxForce * 3;
+    if (this.x > W - m) acc.x -= (1 - (W - this.x) / m) * this.maxForce * 3;
+    if (this.y < m) acc.y += (1 - this.y / m) * this.maxForce * 3;
+    if (this.y > H - m) acc.y -= (1 - (H - this.y) / m) * this.maxForce * 3;
+    return acc;
+  };
+
+  Koi.prototype.update = function (school, dt) {
+    let acc = { x: 0, y: 0 };
+
+    // 1. Food overrides flocking: find the closest pellet in range.
+    let target = null, bestD = FOOD_SENSE;
+    for (let i = 0; i < food.length; i++) {
+      const f = food[i];
+      const d = Math.hypot(f.x - this.x, f.y - this.y);
+      if (d < bestD) { bestD = d; target = f; }
+    }
+
+    if (target) {
+      const s = this.steerTo(target.x, target.y, 2.6);
+      acc.x += s.x; acc.y += s.y;
+      // Still keep a little personal space while crowding the pellet.
+      const sep = this.flock(school);
+      acc.x += sep.x * 0.35; acc.y += sep.y * 0.35;
+      if (bestD < 10) {
+        target.life -= 2.2 * dt;              // nibbling speeds up the pellet's demise
+        addRipple(target.x, target.y, 26, 0.2);
+      }
+    } else {
+      acc = this.flock(school);
+    }
+
+    // 2. Cursor repulsion, the "disturbed water" effect.
+    if (mouse.active) {
+      const dx = this.x - mouse.x, dy = this.y - mouse.y;
+      const d = Math.hypot(dx, dy);
+      if (d < REPEL_RADIUS && d > 0) {
+        const flee = { x: dx / d, y: dy / d };
+        const strength = (1 - d / REPEL_RADIUS);
+        setMag(flee, this.maxSpeed * (1 + strength));
+        flee.x -= this.vx; flee.y -= this.vy;
+        limit(flee, this.maxForce * 9 * strength);
+        acc.x += flee.x; acc.y += flee.y;
+      }
+    }
+
+    // 3. Lazy wandering so the school never looks mechanical.
+    this.wander += (Math.random() - 0.5) * 0.35;
+    acc.x += Math.cos(this.wander) * 0.006;
+    acc.y += Math.sin(this.wander) * 0.006;
+
+    const edge = this.avoidEdges();
+    acc.x += edge.x; acc.y += edge.y;
+
+    this.vx += acc.x; this.vy += acc.y;
+    const v = limit({ x: this.vx, y: this.vy }, this.maxSpeed * (target ? 1.8 : 1));
+    this.vx = v.x; this.vy = v.y;
+
+    const speed = Math.hypot(this.vx, this.vy);
+    if (speed < 0.12) { setMag(v, 0.12); this.vx = v.x; this.vy = v.y; }
+
+    this.x += this.vx * dt * 60;
+    this.y += this.vy * dt * 60;
+
+    // Hard clamp in case of a resize while a fish is off-screen.
+    this.x = Math.max(-40, Math.min(W + 40, this.x));
+    this.y = Math.max(-40, Math.min(H + 40, this.y));
+
+    this.phase += (0.12 + speed * 0.5) * dt * 60 * 0.16;
+  };
+
+  Koi.prototype.draw = function (ctx) {
+    const a = Math.atan2(this.vy, this.vx);
+    const L = this.len * (0.75 + this.depth * 0.45);
+    const Wd = L * 0.42;
+    const wag = Math.sin(this.phase) * 0.42;
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(a);
+
+    // Shadow on the pond floor for a sense of depth.
+    ctx.save();
+    ctx.globalAlpha = 0.16 * this.depth;
+    ctx.fillStyle = '#02191b';
+    ctx.beginPath();
+    ctx.ellipse(-L * 0.1 + 5, 7, L * 0.55, Wd * 0.62, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.globalAlpha = 0.55 + this.depth * 0.45;
+
+    // Tail: two soft fins that sweep with the body wave.
+    ctx.fillStyle = this.body;
+    ctx.globalAlpha *= 0.75;
+    for (let s = -1; s <= 1; s += 2) {
+      ctx.beginPath();
+      ctx.moveTo(-L * 0.42, 0);
+      ctx.quadraticCurveTo(
+        -L * 0.78, wag * L * 0.35 + s * Wd * 0.28,
+        -L * 1.02, wag * L * 0.7 + s * Wd * 0.72
+      );
+      ctx.quadraticCurveTo(-L * 0.7, wag * L * 0.4 + s * Wd * 0.2, -L * 0.42, 0);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 0.55 + this.depth * 0.45;
+
+    // Pectoral fins.
+    ctx.globalAlpha *= 0.6;
+    for (let s = -1; s <= 1; s += 2) {
+      ctx.beginPath();
+      ctx.moveTo(L * 0.06, s * Wd * 0.3);
+      ctx.quadraticCurveTo(-L * 0.12, s * Wd * 1.05 + wag * 4, -L * 0.24, s * Wd * 0.5);
+      ctx.quadraticCurveTo(-L * 0.1, s * Wd * 0.35, L * 0.06, s * Wd * 0.3);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 0.55 + this.depth * 0.45;
+
+    // Body: a teardrop, rounded at the head and tapered at the tail.
+    ctx.beginPath();
+    ctx.moveTo(L * 0.55, 0);
+    ctx.bezierCurveTo(L * 0.5, -Wd, -L * 0.1, -Wd, -L * 0.42, -Wd * 0.16 + wag * 3);
+    ctx.bezierCurveTo(-L * 0.5, 0, -L * 0.5, 0, -L * 0.42, Wd * 0.16 + wag * 3);
+    ctx.bezierCurveTo(-L * 0.1, Wd, L * 0.5, Wd, L * 0.55, 0);
+    ctx.closePath();
+
+    const grad = ctx.createLinearGradient(-L * 0.4, 0, L * 0.55, 0);
+    grad.addColorStop(0, this.accent);
+    grad.addColorStop(0.45, this.body);
+    grad.addColorStop(1, this.body);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Markings, clipped to the body so they never bleed outside.
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = this.accent;
+    ctx.globalAlpha *= 0.85;
+    for (let i = 0; i < this.spots.length; i++) {
+      const sp = this.spots[i];
+      ctx.beginPath();
+      ctx.ellipse(sp.along * L * 0.5, sp.off * Wd * 1.6, L * sp.r, Wd * sp.r * 1.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Highlight along the spine.
+    ctx.globalAlpha = 0.18 * this.depth;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(L * 0.12, -Wd * 0.34, L * 0.3, Wd * 0.16, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  };
+
+  const COUNT = window.innerWidth < 600 ? 14 : 18;
+  const school = [];
+  for (let i = 0; i < COUNT; i++) school.push(new Koi(i, COUNT));
+
+  /* ------------------------------------------------------------------
+     Pond rendering
+  ------------------------------------------------------------------ */
+  function drawWater(t) {
+    const g = ctx.createLinearGradient(0, 0, W * 0.4, H);
+    g.addColorStop(0, '#0f4a48');
+    g.addColorStop(0.5, '#0a3839');
+    g.addColorStop(1, '#062628');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    // Slow drifting light patches, cheap stand-in for caustics.
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 3; i++) {
+      const px = W * (0.25 + 0.3 * i) + Math.sin(t * 0.00007 + i * 2.1) * W * 0.16;
+      const py = H * (0.3 + 0.22 * i) + Math.cos(t * 0.00009 + i * 1.4) * H * 0.14;
+      const r = Math.max(W, H) * 0.34;
+      const rg = ctx.createRadialGradient(px, py, 0, px, py, r);
+      rg.addColorStop(0, 'rgba(120, 214, 190, 0.055)');
+      rg.addColorStop(1, 'rgba(120, 214, 190, 0)');
+      ctx.fillStyle = rg;
+      ctx.fillRect(px - r, py - r, r * 2, r * 2);
+    }
+    ctx.restore();
+  }
+
+  function drawRipples(dt) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const r = ripples[i];
+      r.r += (r.maxR - r.r) * 2.2 * dt + 8 * dt;
+      r.alpha -= 0.5 * dt;
+      if (r.alpha <= 0 || r.r >= r.maxR) { ripples.splice(i, 1); continue; }
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(180, 235, 220, ' + Math.max(0, r.alpha).toFixed(3) + ')';
+      ctx.lineWidth = 1.2;
+      ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawFood(dt) {
+    for (let i = food.length - 1; i >= 0; i--) {
+      const f = food[i];
+      f.life -= dt;
+      if (f.life <= 0) { food.splice(i, 1); continue; }
+      f.x += f.drift;
+      f.y += 0.06;
+      const fade = Math.min(1, f.life / 2.5);
+      ctx.save();
+      ctx.globalAlpha = 0.9 * fade;
+      const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 6);
+      g.addColorStop(0, '#fff3d0');
+      g.addColorStop(1, 'rgba(226, 178, 96, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#e8c07a';
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, 2.1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  let last = performance.now();
+
+  function frame(now) {
+    let dt = (now - last) / 1000;
+    last = now;
+    if (dt > 0.05) dt = 0.05;   // keep the sim stable after a tab switch
+
+    drawWater(now);
+    drawFood(dt);
+
+    for (let i = 0; i < school.length; i++) school[i].update(school, dt);
+    // Back-to-front so deeper fish render underneath.
+    school.sort(function (a, b) { return a.depth - b.depth; });
+    for (let i = 0; i < school.length; i++) school[i].draw(ctx);
+
+    drawRipples(dt);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
 </html>
