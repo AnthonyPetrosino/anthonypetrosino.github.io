@@ -253,10 +253,16 @@
     this.vy = Math.sin(angle);
 
     this.len = 20 + Math.random() * 16;                 // body length in px
-    this.maxSpeed = (0.55 + Math.random() * 0.4) * speedScale;
+    this.baseLen = this.len;
+    this.maxLen = this.baseLen * 1.4;                   // koi only ever get slightly plumper
+    this.radius = this.len * 0.5;                       // personal space, scales with size
+    this.baseSpeed = (0.55 + Math.random() * 0.4) * speedScale;
+    this.maxSpeed = this.baseSpeed;
     this.maxForce = 0.035;
     this.phase = Math.random() * Math.PI * 2;           // tail wave offset
     this.depth = 0.55 + Math.random() * 0.45;           // fake depth -> opacity + scale
+    this.heading = angle;                               // smoothed render angle
+    this.ax = 0; this.ay = 0;                           // smoothed acceleration
     const c = PALETTE[i % PALETTE.length];
     this.body = c.body;
     this.accent = c.accent;
@@ -270,18 +276,30 @@
       });
     }
     this.wander = Math.random() * Math.PI * 2;
+    this.wanderVel = 0;                                 // drifts smoothly instead of per-frame noise
   }
 
-  Koi.prototype.steerTo = function (tx, ty, weight) {
+  /* A well-fed koi fills out a little. Radius follows the new length so the
+     separation and overlap passes keep giving bigger fish the room they need,
+     and a heavier body cruises marginally slower. */
+  Koi.prototype.grow = function (amount) {
+    if (this.len >= this.maxLen) return;
+    this.len = Math.min(this.maxLen, this.len + amount);
+    this.radius = this.len * 0.5;
+    const fed = (this.len - this.baseLen) / (this.maxLen - this.baseLen);
+    this.maxSpeed = this.baseSpeed * (1 - 0.16 * fed);
+  };
+
+  Koi.prototype.steerTo = function (tx, ty, weight, speed) {
     const d = { x: tx - this.x, y: ty - this.y };
-    setMag(d, this.maxSpeed);
+    setMag(d, speed === undefined ? this.maxSpeed : speed);
     d.x -= this.vx; d.y -= this.vy;
     limit(d, this.maxForce);
     return { x: d.x * weight, y: d.y * weight };
   };
 
-  Koi.prototype.flock = function (school) {
-    const sepR = 46, alignR = 96, cohR = 130;
+  Koi.prototype.flock = function (school, sepWeight) {
+    const alignR = 96, cohR = 140;
     let sep = { x: 0, y: 0 }, ali = { x: 0, y: 0 }, coh = { x: 0, y: 0 };
     let sepN = 0, aliN = 0, cohN = 0;
 
@@ -291,7 +309,15 @@
       const dx = this.x - o.x, dy = this.y - o.y;
       const d = Math.hypot(dx, dy);
       if (d === 0) continue;
-      if (d < sepR) { sep.x += (dx / d) / d; sep.y += (dy / d) / d; sepN++; }
+
+      // Separation radius scales with both bodies so big koi keep more room.
+      const sepR = (this.radius + o.radius) * 1.7;
+      if (d < sepR) {
+        // Linear falloff. A 1/d^2 term spikes at close range and makes fish
+        // twitch, so the weight is bounded and smooth all the way to contact.
+        const f = 1 - d / sepR;
+        sep.x += (dx / d) * f; sep.y += (dy / d) * f; sepN++;
+      }
       if (d < alignR) { ali.x += o.vx; ali.y += o.vy; aliN++; }
       if (d < cohR) { coh.x += o.x; coh.y += o.y; cohN++; }
     }
@@ -299,21 +325,30 @@
     const acc = { x: 0, y: 0 };
 
     if (sepN) {
+      sep.x /= sepN; sep.y /= sepN;        // average, not sum, so density does not amplify
       setMag(sep, this.maxSpeed);
       sep.x -= this.vx; sep.y -= this.vy;
-      limit(sep, this.maxForce * 1.6);
-      acc.x += sep.x * 1.5; acc.y += sep.y * 1.5;
+      limit(sep, this.maxForce * 1.5);
+      const w = sepWeight === undefined ? 1.6 : sepWeight;
+      acc.x += sep.x * w; acc.y += sep.y * w;
     }
     if (aliN) {
       ali.x /= aliN; ali.y /= aliN;
       setMag(ali, this.maxSpeed);
       ali.x -= this.vx; ali.y -= this.vy;
       limit(ali, this.maxForce);
-      acc.x += ali.x * 0.9; acc.y += ali.y * 0.9;
+      // Alignment is what keeps a tight group moving as one instead of
+      // grinding against each other, so it is weighted a little heavier now.
+      acc.x += ali.x * 1.15; acc.y += ali.y * 1.15;
     }
     if (cohN) {
-      const c = this.steerTo(coh.x / cohN, coh.y / cohN, 0.7);
-      acc.x += c.x; acc.y += c.y;
+      const cx = coh.x / cohN, cy = coh.y / cohN;
+      const cd = Math.hypot(cx - this.x, cy - this.y);
+      // Do not pull toward the centre once already inside the cluster.
+      if (cd > this.radius * 2.4) {
+        const c = this.steerTo(cx, cy, 0.55);
+        acc.x += c.x; acc.y += c.y;
+      }
     }
     return acc;
   };
@@ -328,7 +363,7 @@
     return acc;
   };
 
-  Koi.prototype.update = function (school, dt) {
+  Koi.prototype.update = function (school, turtle, dt) {
     let acc = { x: 0, y: 0 };
 
     // 1. Food overrides flocking: find the closest pellet in range.
@@ -339,14 +374,23 @@
       if (d < bestD) { bestD = d; target = f; }
     }
 
+    let speedCap = this.maxSpeed;
+
     if (target) {
-      const s = this.steerTo(target.x, target.y, 2.6);
+      // Arrival behaviour: ease off approaching the pellet instead of
+      // overshooting and oscillating around it.
+      const slowR = 90;
+      const approach = this.maxSpeed * 1.8 * (bestD < slowR ? Math.max(0.22, bestD / slowR) : 1);
+      speedCap = Math.max(this.maxSpeed * 0.5, approach);
+      const s = this.steerTo(target.x, target.y, 2.4, approach);
       acc.x += s.x; acc.y += s.y;
-      // Still keep a little personal space while crowding the pellet.
-      const sep = this.flock(school);
-      acc.x += sep.x * 0.35; acc.y += sep.y * 0.35;
+      // Separation stays at full strength while crowding the pellet, which is
+      // exactly where fish used to pile up and grind together.
+      const sep = this.flock(school, 1.9);
+      acc.x += sep.x; acc.y += sep.y;
       if (bestD < 10) {
         target.life -= 2.2 * dt;              // nibbling speeds up the pellet's demise
+        this.grow(2.6 * dt);                  // and puts a little weight on
         addRipple(target.x, target.y, 26, 0.2);
       }
     } else {
@@ -364,19 +408,40 @@
         flee.x -= this.vx; flee.y -= this.vy;
         limit(flee, this.maxForce * 9 * strength);
         acc.x += flee.x; acc.y += flee.y;
+        speedCap = Math.max(speedCap, this.maxSpeed * 1.9);
       }
     }
 
-    // 3. Lazy wandering so the school never looks mechanical.
-    this.wander += (Math.random() - 0.5) * 0.35;
-    acc.x += Math.cos(this.wander) * 0.006;
-    acc.y += Math.sin(this.wander) * 0.006;
+    // 3. Give the turtle a wide berth.
+    if (turtle) {
+      const dx = this.x - turtle.x, dy = this.y - turtle.y;
+      const d = Math.hypot(dx, dy);
+      const zone = this.radius + turtle.radius * 1.5;
+      if (d < zone && d > 0) {
+        const f = (1 - d / zone) * this.maxForce * 2.4;
+        acc.x += (dx / d) * f; acc.y += (dy / d) * f;
+      }
+    }
+
+    // 4. Lazy wandering. The drift itself is what varies, so the heading
+    //    changes on a slow curve rather than a new random jolt every frame.
+    this.wanderVel += (Math.random() - 0.5) * 0.06;
+    this.wanderVel *= 0.94;
+    this.wander += this.wanderVel;
+    acc.x += Math.cos(this.wander) * 0.005;
+    acc.y += Math.sin(this.wander) * 0.005;
 
     const edge = this.avoidEdges();
     acc.x += edge.x; acc.y += edge.y;
 
-    this.vx += acc.x; this.vy += acc.y;
-    const v = limit({ x: this.vx, y: this.vy }, this.maxSpeed * (target ? 1.8 : 1));
+    // Low-pass filter the acceleration. Any remaining frame-to-frame
+    // disagreement between the forces gets smoothed out here.
+    const k = Math.min(1, 7 * dt);
+    this.ax += (acc.x - this.ax) * k;
+    this.ay += (acc.y - this.ay) * k;
+
+    this.vx += this.ax; this.vy += this.ay;
+    const v = limit({ x: this.vx, y: this.vy }, speedCap);
     this.vx = v.x; this.vy = v.y;
 
     const speed = Math.hypot(this.vx, this.vy);
@@ -389,11 +454,18 @@
     this.x = Math.max(-40, Math.min(W + 40, this.x));
     this.y = Math.max(-40, Math.min(H + 40, this.y));
 
+    // Turn the drawn body toward the velocity gradually so a sharp course
+    // correction reads as a bank, not a snap.
+    let diff = Math.atan2(this.vy, this.vx) - this.heading;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    this.heading += diff * Math.min(1, 5 * dt);
+
     this.phase += (0.12 + speed * 0.5) * dt * 60 * 0.16;
   };
 
   Koi.prototype.draw = function (ctx) {
-    const a = Math.atan2(this.vy, this.vx);
+    const a = this.heading;
     const L = this.len * (0.75 + this.depth * 0.45);
     const Wd = L * 0.42;
     const wag = Math.sin(this.phase) * 0.42;
@@ -477,9 +549,202 @@
     ctx.restore();
   };
 
-  const COUNT = window.innerWidth < 600 ? 14 : 18;
+  /* ------------------------------------------------------------------
+     Turtle: same steering ideas, much slower, does not flock or chase food.
+  ------------------------------------------------------------------ */
+  function Turtle() {
+    const angle = Math.random() * Math.PI * 2;
+    this.x = W * 0.5 + (Math.random() - 0.5) * W * 0.3;
+    this.y = H * 0.5 + (Math.random() - 0.5) * H * 0.3;
+    this.vx = Math.cos(angle) * 0.15;
+    this.vy = Math.sin(angle) * 0.15;
+    this.len = 52;
+    this.radius = 30;
+    this.maxSpeed = 0.26 * speedScale;
+    this.maxForce = 0.01;
+    this.heading = angle;
+    this.wander = angle;
+    this.wanderVel = 0;
+    this.phase = 0;
+    this.depth = 0.4;          // sits below the koi in the draw order
+    this.ax = 0; this.ay = 0;
+  }
+
+  Turtle.prototype.avoidEdges = Koi.prototype.avoidEdges;
+
+  Turtle.prototype.update = function (dt) {
+    const acc = { x: 0, y: 0 };
+
+    this.wanderVel += (Math.random() - 0.5) * 0.03;
+    this.wanderVel *= 0.96;
+    this.wander += this.wanderVel;
+    acc.x += Math.cos(this.wander) * 0.004;
+    acc.y += Math.sin(this.wander) * 0.004;
+
+    // Barely bothered by the cursor, just drifts aside.
+    if (mouse.active) {
+      const dx = this.x - mouse.x, dy = this.y - mouse.y;
+      const d = Math.hypot(dx, dy);
+      if (d < REPEL_RADIUS * 1.1 && d > 0) {
+        const f = (1 - d / (REPEL_RADIUS * 1.1)) * this.maxForce * 3;
+        acc.x += (dx / d) * f; acc.y += (dy / d) * f;
+      }
+    }
+
+    const edge = this.avoidEdges();
+    acc.x += edge.x * 0.5; acc.y += edge.y * 0.5;
+
+    const k = Math.min(1, 5 * dt);
+    this.ax += (acc.x - this.ax) * k;
+    this.ay += (acc.y - this.ay) * k;
+
+    this.vx += this.ax; this.vy += this.ay;
+    const v = limit({ x: this.vx, y: this.vy }, this.maxSpeed);
+    this.vx = v.x; this.vy = v.y;
+    if (Math.hypot(this.vx, this.vy) < 0.06) { setMag(v, 0.06); this.vx = v.x; this.vy = v.y; }
+
+    this.x += this.vx * dt * 60;
+    this.y += this.vy * dt * 60;
+    this.x = Math.max(-30, Math.min(W + 30, this.x));
+    this.y = Math.max(-30, Math.min(H + 30, this.y));
+
+    let diff = Math.atan2(this.vy, this.vx) - this.heading;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    this.heading += diff * Math.min(1, 2.5 * dt);
+
+    this.phase += dt * 2.4;
+  };
+
+  Turtle.prototype.draw = function (ctx) {
+    const L = this.len;
+    const shellW = L * 0.46, shellH = L * 0.4;
+    const paddle = Math.sin(this.phase);
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.heading);
+
+    // Floor shadow.
+    ctx.save();
+    ctx.globalAlpha = 0.2;
+    ctx.fillStyle = '#02191b';
+    ctx.beginPath();
+    ctx.ellipse(6, 8, shellW * 1.02, shellH * 0.95, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.globalAlpha = 0.92;
+
+    // Flippers: front pair sweeps, rear pair trails.
+    ctx.fillStyle = '#5c8f70';
+    for (let s = -1; s <= 1; s += 2) {
+      ctx.save();
+      ctx.translate(shellW * 0.5, s * shellH * 0.62);
+      ctx.rotate(s * (0.5 + paddle * 0.4));
+      ctx.beginPath();
+      ctx.ellipse(L * 0.16, 0, L * 0.2, L * 0.085, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(-shellW * 0.6, s * shellH * 0.58);
+      ctx.rotate(s * (-0.7 - paddle * 0.25));
+      ctx.beginPath();
+      ctx.ellipse(-L * 0.1, 0, L * 0.13, L * 0.065, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Head and tail.
+    ctx.beginPath();
+    ctx.ellipse(shellW * 1.03, paddle * L * 0.03, L * 0.14, L * 0.1, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-shellW * 0.95, -L * 0.04);
+    ctx.lineTo(-shellW * 1.22, 0);
+    ctx.lineTo(-shellW * 0.95, L * 0.04);
+    ctx.closePath();
+    ctx.fill();
+
+    // Eyes.
+    ctx.fillStyle = '#12261f';
+    for (let s = -1; s <= 1; s += 2) {
+      ctx.beginPath();
+      ctx.arc(shellW * 1.12, s * L * 0.05 + paddle * L * 0.03, L * 0.019, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Shell.
+    ctx.beginPath();
+    ctx.ellipse(0, 0, shellW, shellH, 0, 0, Math.PI * 2);
+    const shell = ctx.createRadialGradient(-shellW * 0.25, -shellH * 0.35, L * 0.05, 0, 0, shellW * 1.15);
+    shell.addColorStop(0, '#4b8a67');
+    shell.addColorStop(0.6, '#2f6049');
+    shell.addColorStop(1, '#1d4034');
+    ctx.fillStyle = shell;
+    ctx.fill();
+
+    // Scutes, clipped inside the shell.
+    ctx.save();
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(20, 48, 38, 0.75)';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, shellW * 0.5, shellH * 0.52, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < 6; i++) {
+      const th = (i / 6) * Math.PI * 2 + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(th) * shellW * 0.5, Math.sin(th) * shellH * 0.52);
+      ctx.lineTo(Math.cos(th) * shellW * 1.1, Math.sin(th) * shellH * 1.1);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Rim and a soft highlight on the carapace.
+    ctx.strokeStyle = 'rgba(140, 200, 170, 0.35)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, shellW, shellH, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.14;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(-shellW * 0.22, -shellH * 0.42, shellW * 0.3, shellH * 0.16, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  };
+
+  const COUNT = window.innerWidth < 600 ? 19 : 23;
   const school = [];
   for (let i = 0; i < COUNT; i++) school.push(new Koi(i, COUNT));
+
+  const turtle = new Turtle();
+  const agents = school.concat([turtle]);
+
+  /* Final overlap pass: nudge positions apart directly instead of asking the
+     steering forces to resolve contact. This is what stops the bumping. */
+  function relax(list) {
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        const a = list[i], b = list[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const d = Math.hypot(dx, dy);
+        const min = (a.radius + b.radius) * 0.85;
+        if (d > 0 && d < min) {
+          const push = ((min - d) / d) * 0.2;
+          const ox = dx * push, oy = dy * push;
+          const aw = a === turtle ? 0.15 : 1;   // the turtle holds its ground
+          const bw = b === turtle ? 0.15 : 1;
+          a.x -= ox * aw; a.y -= oy * aw;
+          b.x += ox * bw; b.y += oy * bw;
+        }
+      }
+    }
+  }
 
   /* ------------------------------------------------------------------
      Pond rendering
@@ -560,10 +825,13 @@
     drawWater(now);
     drawFood(dt);
 
-    for (let i = 0; i < school.length; i++) school[i].update(school, dt);
+    turtle.update(dt);
+    for (let i = 0; i < school.length; i++) school[i].update(school, turtle, dt);
+    relax(agents);
+
     // Back-to-front so deeper fish render underneath.
-    school.sort(function (a, b) { return a.depth - b.depth; });
-    for (let i = 0; i < school.length; i++) school[i].draw(ctx);
+    agents.sort(function (a, b) { return a.depth - b.depth; });
+    for (let i = 0; i < agents.length; i++) agents[i].draw(ctx);
 
     drawRipples(dt);
     requestAnimationFrame(frame);
